@@ -1,15 +1,10 @@
 import cv2
-import mediapipe as mp
 import time
+
+from hands import HandTracker
 
 cap = cv2.VideoCapture(0)
 
-hands = mp.solutions.hands.Hands(
-    static_image_mode=False,
-    model_complexity = 0
-)
-
-mpDraw = mp.solutions.drawing_utils
 
 pTime = 0
 cTime = 0
@@ -31,35 +26,30 @@ h, w, c = img.shape
 HIT_DELAY = 25
 hit_delay_counter = 0
 
+hands_tracker = HandTracker(num_hands=1)
+
 while RUN:
     hit_delay_counter += 1 if hit_delay_counter < HIT_DELAY else 0
     success, img = cap.read()
     img = cv2.flip(img, 1)
     imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = hands.process(imgRGB)
+    
+    hands_tracker.update(imgRGB)
 
-    if results.multi_hand_landmarks:
+    if hands_tracker.hands[0].detected_location is not None:
+        x = hands_tracker.hands[0].detected_location.x
+        y = hands_tracker.hands[0].detected_location.y
 
-        for hand_landmarks in results.multi_hand_landmarks:
-            
-            x = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.THUMB_TIP].x
-            y = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.THUMB_TIP].y
+        cv2.circle(img, (int(w * x), int(h * y)), 25, (0,255,255), cv2.FILLED)
 
-            cv2.circle(img, (int(w * x), int(h * y)), 25, (0,255,255), cv2.FILLED)
-
-            if abs(x - pong_x) < HIT_THRESHOLD and abs(y - pong_y) < HIT_THRESHOLD and hit_delay_counter == HIT_DELAY:
-                print("HIT")
-                x_d *= -1
-                hit_delay_counter = 0
-
-            #mpDraw.draw_landmarks(
-            #    img, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS
-            #)
+        if abs(x - pong_x) < HIT_THRESHOLD and abs(y - pong_y) < HIT_THRESHOLD and hit_delay_counter == HIT_DELAY:
+            print("HIT")
+            x_d *= -1
+            hit_delay_counter = 0
 
     # update ball location
-    pong_x += speed * x_d
-    pong_y += speed * y_d
-
+    #pong_x += speed * x_d
+    #pong_y += speed * y_d
 
     if pong_x > 1.0 or pong_x < 0.0:
         RUN=False
