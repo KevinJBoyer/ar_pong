@@ -16,7 +16,7 @@ class HandsTracker:
         # the specific landmark in the model hand to center the hand
         self.tracking_landmark = mp.solutions.hands.HandLandmark.MIDDLE_FINGER_MCP
 
-        self.tracked_hands = MultiObjectTracker(num_objects=2)
+        self.tracked_hands = MultiObjectTracker(fadein_threshold=5.0)
 
         self.mp_detected_hands: Optional[Any] = None
         self.mp_hands = mp.solutions.hands.Hands(
