@@ -1,19 +1,12 @@
-from math import sqrt
-from typing import Any, NamedTuple, Optional, Tuple
+from typing import Any, Optional
+
 import mediapipe as mp
 
-from typing_extensions import TypeAlias
-
-from . import Point
-
-from .detectedobject import DetectedObject
-
-# todo: generalize to generic objects
-# todo: add tests
-# todo: generalize to multiple generic objects
+from objecttracker.multiobjecttracker import MultiObjectTracker
+from objecttracker.point import Point
 
 
-class HandTracker:
+class HandsTracker:
     # the specific landmark in the model hand to center the hand
     tracking_landmark = mp.solutions.hands.HandLandmark.MIDDLE_FINGER_MCP
 
@@ -22,11 +15,11 @@ class HandTracker:
     min_detection_confidence = 0.1
     min_tracking_confidence = 0.8
 
-    hand: DetectedObject
+    tracked_hands: MultiObjectTracker
     detected_hands: Optional[Any] = None
 
     def __init__(self):
-        self.hand = DetectedObject()
+        self.tracked_hands = MultiObjectTracker(num_objects=2)
 
         self.mp_hands = mp.solutions.hands.Hands(
             static_image_mode=False,
@@ -46,8 +39,8 @@ class HandTracker:
                 y = hand_coords.landmark[self.tracking_landmark].y
                 coords.append(Point(x, y))
 
-        self.hand.update_detected_location(coords)
-        self.hand.update_current_location()
+        self.tracked_hands.update_detected_locations(coords)
+        self.tracked_hands.update_current_locations()
 
     def draw(self, img) -> None:
         if self.detected_hands is not None:

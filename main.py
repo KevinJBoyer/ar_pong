@@ -1,7 +1,7 @@
 import cv2
 import time
 
-from mediapipeui.handtracker import HandTracker
+from handstracker import HandsTracker
 
 cap = cv2.VideoCapture(0)
 
@@ -11,7 +11,7 @@ cTime = 0.0
 RUN = True
 success, img = cap.read()
 h, w, c = img.shape
-hands_tracker = HandTracker()
+hands_tracker = HandsTracker()
 
 while RUN:
     success, img = cap.read()
@@ -21,10 +21,11 @@ while RUN:
     hands_tracker.update(imgRGB)
     hands_tracker.draw(img)
 
-    if hands_tracker.hand.current_location is not None:
-        x = hands_tracker.hand.current_location.x
-        y = hands_tracker.hand.current_location.y
-        cv2.circle(img, (int(w * x), int(h * y)), 25, (0, 255, 255), cv2.FILLED)
+    for hand in hands_tracker.tracked_hands.tracked_objects:
+        if hand.current_location is not None:
+            x = hand.current_location.x
+            y = hand.current_location.y
+            cv2.circle(img, (int(w * x), int(h * y)), 25, (0, 255, 255), cv2.FILLED)
 
     cTime = time.time()
     fps = 1 / (cTime - pTime)
