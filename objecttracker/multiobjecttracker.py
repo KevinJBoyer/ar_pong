@@ -7,11 +7,20 @@ class MultiObjectTracker:
         self.kwargs = kwargs
         self.object_trackers: list[ObjectTracker] = []
 
-    # todo: formally, what this should REALLY do is solve the assignment
+    # todo: Formally, what this should REALLY do is solve the assignment
     # problem... but setting a detection radius is good enough for now.
     def update_detected_locations(self, candidates: list[Point]):
-        # object_tracker_queue: list[ObjectTracker] = []
-        # object_tracker_queue.append(object_tracker)
+
+        """
+        todo: Even this implementation has a subtle bug. Consider if a
+        signal is detected and then goes away: an object tracker is created
+        for it. If this object tracker has a long fade out time, and then a
+        signal far away from the original is created, no additional object
+        tracker will be created: len(candidates) == len(self.object_trackers)
+        until the first object tracker is removed. In practice, this is rarely
+        an issue since fade out times are typically short, but it should still
+        be addressed in the future, possibly by implementing a priority queue.
+        """
 
         # If we have more unassigned locations than object trackers,
         # create more object trackers.
