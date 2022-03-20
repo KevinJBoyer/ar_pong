@@ -4,7 +4,7 @@ from typing import Optional
 from .point import Point
 
 
-class TrackedObject:
+class ObjectTracker:
     def __init__(
         self,
         fadein_threshold=1.0,

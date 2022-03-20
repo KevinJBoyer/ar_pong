@@ -21,7 +21,7 @@ while RUN:
     hands_tracker.update(imgRGB)
     hands_tracker.draw(img)
 
-    for hand in hands_tracker.tracked_hands.tracked_objects:
+    for hand in hands_tracker.tracked_hands.object_trackers:
         if hand.current_location is not None:
             x = hand.current_location.x
             y = hand.current_location.y
