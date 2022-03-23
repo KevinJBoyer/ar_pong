@@ -6,11 +6,11 @@ authors = ["Kevin Boyer <kevinjboyer@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-opencv-python = "^4.5.5"
-mediapipe = "^0.8.9"
 mypy = "^0.941"
 pyglet = "^1.5.22"
 numpy = "^1.22.3"
+opencv-contrib-python = "^4.5.5"
+mediapipe = "^0.8.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
