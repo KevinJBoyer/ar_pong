@@ -140,7 +140,7 @@ protobuf = ">=3.11.4"
 name = "mypy"
 version = "0.941"
 description = "Optional static typing for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -158,7 +158,7 @@ reports = ["lxml"]
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -299,14 +299,14 @@ python-versions = ">=3.7"
 name = "typing-extensions"
 version = "4.1.1"
 description = "Backported and Experimental Type Hints for Python 3.6+"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c28074f601a47eb08b145562ded78587b1ff264c17d0aab964a7caa3569ab2e2"
+content-hash = "d86a1b9200b434de18bafa5de5268bad8da1fe9072a990061be1461e368718e5"
 
 [metadata.files]
 absl-py = [
