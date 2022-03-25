@@ -34,16 +34,16 @@
 
 """
 This is a copy of https://github.com/motmot/pygarrayimage that adds a
-modification proposed by GitHub user wwods here:
+modification proposed by GitHub user wwoods here:
 https://github.com/motmot/pygarrayimage/pull/1 in order to keep up with the
-Pyget interface: .texture -> .get_texture()
+Pyglet interface: .texture -> .get_texture()
 """
 
 
 from pyglet.image import ImageData
 import ctypes
 
-__version__ = "1.0"  # keep in sync with ../setup.py
+__version__ = "1.1"  # keep in sync with ../setup.py
 __all__ = ["ArrayInterfaceImage"]
 
 
