@@ -5,18 +5,6 @@ from pygarrayimage.arrayimage import ArrayInterfaceImage
 from camera import Camera, Corners
 
 
-def marker_to_pyglet_image(marker):
-    height, width = marker.shape
-    channels = 1
-    bytes = height * width * channels
-
-    marker = marker.ravel()
-
-    image_texture = (pyglet.gl.GLubyte * bytes)(*marker.astype("uint8"))
-
-    return pyglet.image.ImageData(width, height, "I", image_texture)
-
-
 def render_markers(window, marker_images):
     window_width, window_height = window.get_size()
     marker_width = marker_images[0].width
@@ -30,19 +18,20 @@ def render_markers(window, marker_images):
 
 camera = Camera()
 markers = camera.get_calibration_markers()
-marker_images = [marker_to_pyglet_image(marker) for marker in markers]
+marker_images = [ArrayInterfaceImage(marker, format="I") for marker in markers]
 
 pyglet.gl.glClearColor(1, 1, 1, 1)
-# projection_window = pyglet.window.Window(resizable=True)
-camera_window = pyglet.window.Window(width=camera.width, height=camera.height)
+projection_window = pyglet.window.Window(resizable=True)
 
-"""
+
 @projection_window.event
 def on_draw():
     projection_window.clear()
     render_markers(projection_window, marker_images)
-"""
 
+
+"""
+camera_window = pyglet.window.Window(width=camera.width, height=camera.height)
 
 @camera_window.event
 def on_draw():
@@ -54,9 +43,9 @@ def on_draw():
     pyglet_image.blit(0, 0)
 
     fps_display.draw()
-
-
 """
+
+
 @projection_window.event
 def on_key_press(symbol, modifiers):
     if symbol == key.SPACE:
@@ -72,7 +61,6 @@ def on_key_press(symbol, modifiers):
 
         camera.calibrate(image, screen_corners)
         print(camera.homography)
-"""
 
 
 def update(dt):
@@ -81,7 +69,7 @@ def update(dt):
 
 pyglet.clock.schedule_interval(update, 0.1)
 
-fps_display = pyglet.window.FPSDisplay(window=camera_window)
+# fps_display = pyglet.window.FPSDisplay(window=camera_window)
 
 pyglet.app.run()
 
