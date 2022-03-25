@@ -148,7 +148,7 @@ class ArrayInterfaceImage(ImageData):
         ctypes.memmove(mydata, self.data_ptr, nbytes)
         return mydata.value
 
-    data = property(get_data, None, "string view of data")
+    data = property(get_data, doc="string view of data")
 
     def _convert(self, format, pitch):
         if format == self._current_format and pitch == self._current_pitch:
