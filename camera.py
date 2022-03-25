@@ -1,21 +1,15 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, cast
 from typing_extensions import TypeAlias
 import cv2
+import numpy as np
 
-Corners: TypeAlias = Tuple[
-    Tuple[float, float],
-    Tuple[float, float],
-    Tuple[float, float],
-    Tuple[float, float],
-]
+Corner: TypeAlias = Tuple[float, float]
+Corners: TypeAlias = list[Corner]
 
 
 class Camera:
     MARKER_DICTIONARY = cv2.aruco.DICT_7X7_50
     MARKER_SIZE: int = 300
-
-    # todo - I think this should be set by pyglet module, doesn't make sense to have defaults here
-    SCREEN_CORNERS: Corners = ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))
 
     def __init__(self, camera_id=0):
         self.camera_id: int = camera_id
@@ -28,40 +22,51 @@ class Camera:
 
         self.homography = None
 
-    def _find_markers(self) -> Tuple[Any, list[int]]:
-        image = self.get_image()
+    def _find_markers(self, image) -> Tuple[Any, list[int]]:
         image = cv2.flip(image, 1)  # why is this needed?!
-        corners, ids, rejected = cv2.aruco.detectMarkers(image, self.aruco_dict)
-        return corners, ids
+        marker_corners, marker_ids, rejected_markers = cv2.aruco.detectMarkers(
+            image, self.aruco_dict
+        )
+        marker_ids = [id for [id] in marker_ids]
+        return marker_corners, marker_ids
 
-    def _find_projection_corners(self) -> Optional[Corners]:
-        corners, ids = self._find_markers()
+    def _find_projection_corners(self, image) -> Optional[Corners]:
+        marker_corners, ids = self._find_markers(image)
+
         if len(ids) != 4:
             return None
 
-        # todo
-        print(corners, ids)
+        projection_corners: Corners = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
 
-        return None
+        for id in ids:
+            corner = id
+            marker_corner: Corner = marker_corners[id][0][corner]
+            projection_corners[id] = marker_corner
+
+        return projection_corners
 
     def get_image(self):
         success, image = self.camera.read()
         return image
 
-    def get_homography_markers(self, size=None) -> list:
+    def get_calibration_markers(self, size=None) -> list:
+        """
+        Return a list of four calibration marker images:
+        [TopLeft, TopRight, BottomRight, BottomLeft]
+        """
+
         if size is None:
             size = Camera.MARKER_SIZE
 
         return [cv2.aruco.drawMarker(self.aruco_dict, id, size) for id in range(4)]
 
-    def set_homography(self, dest_corners: Optional[Corners] = None) -> bool:
-        if dest_corners is None:
-            dest_corners = Camera.SCREEN_CORNERS
+    def calibrate(self, image, screen_corners: Corners) -> bool:
+        projection_corners = self._find_projection_corners(image)
 
-        src_corners = self._find_projection_corners()
-
-        if src_corners is not None:
-            self.homography, success = cv2.findHomography(src_corners, dest_corners)
+        if projection_corners is not None:
+            self.homography, success = cv2.findHomography(
+                np.array(projection_corners), np.array(screen_corners)
+            )
             return success
 
         return False

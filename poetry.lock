@@ -234,14 +234,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "pygarrayimage"
-version = "1.0"
-description = "Allow numpy arrays as source of texture data for pyglet."
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "pyglet"
 version = "1.5.23"
 description = "Cross-platform windowing and multimedia library"
@@ -314,7 +306,7 @@ python-versions = ">=3.6"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "372290ff3d11114b1a715adf05fa5e6030bc095d1c4d3fd79ca18b34679e23e1"
+content-hash = "d86a1b9200b434de18bafa5de5268bad8da1fe9072a990061be1461e368718e5"
 
 [metadata.files]
 absl-py = [
@@ -601,10 +593,6 @@ protobuf = [
     {file = "protobuf-3.19.4-cp39-cp39-win_amd64.whl", hash = "sha256:3112b58aac3bac9c8be2b60a9daf6b558ca3f7681c130dcdd788ade7c9ffbdca"},
     {file = "protobuf-3.19.4-py2.py3-none-any.whl", hash = "sha256:8961c3a78ebfcd000920c9060a262f082f29838682b1f7201889300c1fbe0616"},
     {file = "protobuf-3.19.4.tar.gz", hash = "sha256:9df0c10adf3e83015ced42a9a7bd64e13d06c4cf45c340d2c63020ea04499d0a"},
-]
-pygarrayimage = [
-    {file = "pygarrayimage-1.0.tar.gz", hash = "sha256:e1f18664b3692ffbf0b97bc0b511d812b61aa4ac4c5a41aad99421381266bd82"},
-    {file = "pygarrayimage-1.0.zip", hash = "sha256:9562df6783d87a96eb75c126392d2d9b6728efffb5d712ee1385549fcf09a22a"},
 ]
 pyglet = [
     {file = "pyglet-1.5.23-py3-none-any.whl", hash = "sha256:086317c022612bf0aa28f32134a8cbe3d11de96787f5412d38d9c6abb6cfc771"},
