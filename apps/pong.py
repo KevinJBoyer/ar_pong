@@ -1,3 +1,5 @@
+import pyglet
+
 from typing import TYPE_CHECKING
 from apps.app import App
 
@@ -6,8 +8,7 @@ if TYPE_CHECKING:
 
 
 class Pong(App):
-    def __init__(self):
-        self.name = "Pong"
+    name = "Pong"
 
-    def init(self, system: "System") -> None:
+    def __init__(self, system: "System", **kwargs):
         pass

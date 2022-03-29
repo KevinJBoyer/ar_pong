@@ -6,9 +6,5 @@ if TYPE_CHECKING:
 
 
 class App(ABC):
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def init(self, system: "System") -> None:
+    def __init__(self, system: "System", **kwargs):
         pass

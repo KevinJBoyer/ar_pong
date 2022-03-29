@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, cast
+from typing import Any, Optional, Tuple
 from typing_extensions import TypeAlias
 import cv2
 import numpy as np
