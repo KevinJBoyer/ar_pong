@@ -13,3 +13,9 @@ Your thumbs are the paddles. Don't let it fly off the left or right side of the 
 https://github.com/motmot/pygarrayimage/pull/1 (and pygarrayimage generally)
 
 emma smith / tinyland
+
+# known issues
+
+- why doesn't airplay work with pyglet :-(
+- why do the southern markers get cut off in the secondary display
+- why doesn't ESC quit both windows
