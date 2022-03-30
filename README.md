@@ -19,3 +19,10 @@ emma smith / tinyland
 - why doesn't airplay work with pyglet :-(
 - why do the southern markers get cut off in the secondary display
 - why doesn't ESC quit both windows
+
+# todo
+
+- findHomography using markers from camera (may need longer HDMI cable?)
+- have setup launch app if len([app]) == 1
+- confirm homography with handtracker
+- pong
