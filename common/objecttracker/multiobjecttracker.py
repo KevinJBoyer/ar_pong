@@ -3,9 +3,14 @@ from .objecttracker import ObjectTracker
 
 
 class MultiObjectTracker:
-    def __init__(self, **kwargs):
+    def __init__(self, exclusion_radius=0.0, **kwargs):
         self.kwargs = kwargs
         self.object_trackers: list[ObjectTracker] = []
+
+        # If an object tracker picks a candidate location, all other locations
+        # in the exclusion radius are removed (so another object tracker
+        # won't pick them up). Set to 0.0 for no exclusion radius.
+        self.exclusion_radius = exclusion_radius
 
     # todo: Formally, what this should REALLY do is solve the assignment
     # problem... but setting a detection radius is good enough for now.
@@ -32,9 +37,16 @@ class MultiObjectTracker:
             detected_location = object_tracker.update_detected_location(candidates)
 
             # If a candidate location was picked, remove it so another tracked
-            # object doesn't try to also assign itself to that location.
+            # object doesn't try to also assign itself to that location, and
+            # remove all other candidate locations within the exclusion radius
+            # of the detected location.
             if detected_location is not None:
                 candidates.remove(detected_location)
+                candidates = [
+                    c
+                    for c in candidates
+                    if c.distance_to(detected_location) > self.exclusion_radius
+                ]
 
             # If a candidate location wasn't picked and the tracker has faded
             # out, remove it so we don't keep processing over it.

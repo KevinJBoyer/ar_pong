@@ -1,8 +1,5 @@
 import pyglet
 
-from apps.app import App
-from apps.setup import Setup
-from pygarrayimage.arrayimage import ArrayInterfaceImage
 from system.camera import Camera
 from system.displaywindow import DisplayWindow
 
@@ -16,9 +13,6 @@ class System:
 
     def run(self) -> None:
         pyglet.app.run()
-
-    def camera_image_to_display(self, image, format="BGR"):
-        return ArrayInterfaceImage(image, format=format)
 
     def get_primary_screen(self):
         return pyglet.canvas.get_display().get_screens()[0]

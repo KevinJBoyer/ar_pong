@@ -1,127 +1,73 @@
-from enum import Enum, auto
-from typing import TYPE_CHECKING
 import pyglet
+from system.camerawindow import CameraWindow
 
-from apps.app import App
-
-if TYPE_CHECKING:
-    from system import System
+from system.system import System
 
 
-class SetupState(Enum):
-    USER_SETUP = auto()
-    CALIBRATING = auto()
-    CALIBRATION_FAILED = auto()
-    RUNNING_APP = auto()
-
-
-class Setup(App):
+class Setup:
     name = "Setup"
 
-    MARKER_MIN_SIZE = 100
-    MARKER_MAX_SIZE = 500
-    MAX_CALIBRATION_TIME_SECONDS = 3.0
+    SKIP_CALIBRATION = True
 
-    WEBCAM_UPDATE_FREQ_SECONDS = 1.0 / 10
-    DISPLAY_UPDATE_FREQ_SECONDS = 1.0 / 30
+    CAMERA_UPDATE_FREQ_SECONDS = 1.0 / 5
+    MARKER_PADDING = 0.05
+    MARKER_SIZE = 0.25
 
-    def __init__(self, system: "System", apps: list[App]):
-        self.state = SetupState.USER_SETUP
+    def __init__(self, system: System, apps: list):
 
         self.system = system
         self.apps = apps
 
-        self.label = self.make_instructions()
+        self.camera_window = CameraWindow(self.system)
 
         self.system.display.push_handlers(
             on_draw=self.display_draw,
             on_key_press=self.on_key_press,
         )
 
-        self.camera_window = pyglet.window.Window(
-            width=self.system.camera.width,
-            height=self.system.camera.height,
-            screen=self.system.get_primary_screen(),
-        )
-        self.camera_window.set_location(0, 0)
-        self.camera_window.push_handlers(
-            on_draw=self.camera_draw, on_key_press=self.on_key_press
-        )
-
         pyglet.clock.schedule_interval(
-            self.camera_draw, self.WEBCAM_UPDATE_FREQ_SECONDS
+            self.check_for_calibration, self.CAMERA_UPDATE_FREQ_SECONDS
         )
 
-        pyglet.clock.schedule_interval(
-            self.display_update, self.DISPLAY_UPDATE_FREQ_SECONDS
-        )
+    def check_for_calibration(self, delta_time_seconds):
+        camera_image = self.system.camera.get_image()
 
-    def get_marker_images(self, marker_size):
-        markers = self.system.camera.get_calibration_markers(size=marker_size)
-        return [
-            self.system.camera_image_to_display(marker, format="I")
-            for marker in markers
+        # Attempt to calibrate
+        left, right, bottom, top = self.get_marker_positions()
+        marker_width = self.marker_images[0].width
+        marker_height = self.marker_images[0].height
+        marker_corners = [
+            (left, top + marker_height),
+            (right + marker_width, top + marker_height),
+            (right + marker_width, bottom),
+            (left, bottom),
         ]
+        self.system.camera.calibrate(camera_image, marker_corners)
+
+        self.camera_window.draw_camera_image(camera_image)
+
+        if self.system.camera.homography is not None or Setup.SKIP_CALIBRATION:
+            self.launch_app()
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == pyglet.window.key.Q:
+            pyglet.app.exit()
 
     def display_draw(self):
         self.system.display.clear()
-        self.label = self.make_instructions()
-        self.label.draw()
 
-        if self.state == SetupState.CALIBRATING:
-            window_width, window_height = self.system.display.get_size()
-            marker_width = self.marker_images[0].width
-            marker_height = self.marker_images[0].height
-
-            self.marker_images[0].blit(0, window_height - marker_height)
-            self.marker_images[1].blit(
-                window_width - marker_width, window_height - marker_height
-            )
-            self.marker_images[2].blit(window_width - marker_width, 0)
-            self.marker_images[3].blit(0, 0)
-
-    def on_key_press(self, symbol, modifiers):
-        if (
-            self.state in (SetupState.USER_SETUP, SetupState.CALIBRATION_FAILED)
-            and symbol == pyglet.window.key.SPACE
-        ):
-            self.state = SetupState.CALIBRATING
-
-    def display_update(self, delta_seconds):
-        if self.state in (SetupState.USER_SETUP, SetupState.CALIBRATION_FAILED):
-            self.marker_size = self.MARKER_MIN_SIZE
-
-        elif self.state == SetupState.CALIBRATING:
-            marker_delta = (self.MARKER_MAX_SIZE - self.MARKER_MIN_SIZE) / (
-                self.MAX_CALIBRATION_TIME_SECONDS / self.DISPLAY_UPDATE_FREQ_SECONDS
-            )
-            self.marker_size += int(marker_delta)
-            self.marker_images = self.get_marker_images(self.marker_size)
-
-            if self.marker_size > self.MARKER_MAX_SIZE:
-                self.state = SetupState.CALIBRATION_FAILED
-
-    def camera_draw(self, delta_seconds=None):
-        self.camera_window.switch_to()
-        camera_image = self.system.camera.get_image()
-        pyglet_image = self.system.camera_image_to_display(camera_image)
-
-        # why is the returned image backward?
-        flipped_image = pyglet_image.get_texture().get_transform(
-            flip_x=True, flip_y=True
+        display_marker_size = self.system.display.relative_height_to_display(
+            Setup.MARKER_SIZE
         )
-        flipped_image.blit(flipped_image.width, flipped_image.height)
+        self.marker_images = [
+            self.system.camera.image_to_display(marker, format="I")
+            for marker in self.system.camera.get_calibration_markers(
+                size=display_marker_size
+            )
+        ]
 
-    def make_instructions(self):
-        if self.state == SetupState.CALIBRATING:
-            message = "calibrating..."
-        elif self.state == SetupState.CALIBRATION_FAILED:
-            message = "calibration failed\npress space to try again"
-        else:
-            message = "move this window to display\nand center in webcam,\nthen press space to calibrate"
-
-        return pyglet.text.Label(
-            message,
+        pyglet.text.Label(
+            "calibrating...",
             font_name="Times New Roman",
             font_size=36,
             x=self.system.display.width // 2,
@@ -130,6 +76,41 @@ class Setup(App):
             anchor_y="center",
             align="center",
             color=(0, 0, 0, 255),
-            multiline=True,
-            width=self.system.display.width,
+        ).draw()
+
+        left, right, bottom, top = self.get_marker_positions()
+        self.marker_images[0].blit(left, top)
+        self.marker_images[1].blit(right, top)
+        self.marker_images[2].blit(right, bottom)
+        self.marker_images[3].blit(left, bottom)
+
+    def get_marker_positions(self):
+        """Get positions to place the markers in display coordinates."""
+
+        window_width, window_height = self.system.display.get_size()
+        marker_width = self.marker_images[0].width
+        marker_height = self.marker_images[0].height
+
+        display_padding = self.system.display.relative_height_to_display(
+            Setup.MARKER_PADDING
         )
+
+        left = display_padding
+        right = window_width - marker_width - display_padding
+        bottom = display_padding
+        top = window_height - marker_height - display_padding
+
+        return left, right, bottom, top
+
+    def launch_app(self):
+        pyglet.clock.unschedule(self.check_for_calibration)
+        self.system.display.pop_handlers()
+        self.camera_window.set_visible(visible=False)
+        self.camera_window.close()
+        self.camera_window = None
+
+        if len(self.apps) == 1:
+            self.running_app = self.apps[0](self.system)
+        else:
+            # future: show an app selection menu
+            self.running_app = self.apps[0](self.system)
