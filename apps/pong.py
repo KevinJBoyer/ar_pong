@@ -40,6 +40,7 @@ class Ball:
     dy: float = 1.0
     speed: float = 0.1
 
+    ACCEL: float = 0.01
     SIZE: float = 0.025
     COLOR = (0, 0, 0)
 
@@ -52,18 +53,20 @@ class Ball:
         self.x += self.dx * delta_time_seconds * self.speed
         self.y += self.dy * delta_time_seconds * self.speed
 
+        self.speed += Ball.ACCEL * delta_time_seconds
+
         if self.y < Ball.SIZE:
             self.dy = 1
         elif self.y > 1.0 - Ball.SIZE:
             self.dy = -1
 
-        if self.x < Paddle.WIDTH:
+        if self.x < Paddle.WIDTH + (Ball.SIZE / 2):
             if self.y > left_paddle.y and self.y < left_paddle.y + Paddle.HEIGHT:
                 self.dx = 1
             else:
                 return False
 
-        if self.x > 1.0 - Paddle.WIDTH:
+        if self.x > 1.0 - Paddle.WIDTH - (Ball.SIZE / 2):
             if self.y > right_paddle.y and self.y < right_paddle.y + Paddle.HEIGHT:
                 self.dx = -1
             else:
@@ -99,6 +102,8 @@ class Pong:
         self.key_down = False
         self.key_w = False
         self.key_s = False
+
+        self.game_happening = True
 
         self.system.display.push_handlers(
             on_draw=self.draw,
@@ -140,6 +145,20 @@ class Pong:
         self.left_paddle.draw()
         self.right_paddle.draw()
 
+        if not self.game_happening:
+            pyglet.text.Label(
+                "game over\npress space to play again",
+                font_name="Times New Roman",
+                font_size=36,
+                x=self.system.display.width // 2,
+                y=self.system.display.height // 2,
+                anchor_x="center",
+                anchor_y="center",
+                multiline=True,
+                width=self.system.display.width,
+                align="center",
+                color=(0, 0, 0, 255),
+            ).draw()
         """
         self.hands.update_current_locations()
         for hand in self.hands.get():
@@ -172,11 +191,18 @@ class Pong:
             self.key_w = False
         elif symbol == pyglet.window.key.S:
             self.key_s = False
+        elif symbol == pyglet.window.key.SPACE:
+            self.game_happening = True
+            self.reset_game()
 
     def update(self, delta_time_seconds):
-        self.update_paddles_from_keys()
-        self.ball.update(delta_time_seconds, self.left_paddle, self.right_paddle)
-        self.draw()
+        if self.game_happening:
+            self.update_paddles()
+            # self.update_paddles_from_keys()
+            self.game_happening = self.ball.update(
+                delta_time_seconds, self.left_paddle, self.right_paddle
+            )
+            self.draw()
 
     def update_paddles_from_keys(self):
         if self.key_w:
@@ -189,34 +215,21 @@ class Pong:
         elif self.key_down:
             self.right_paddle.y -= Paddle.SPEED
 
-    """
     def update_paddles(self):
         window_width, _ = self.system.display.get_size()
 
         self.hands.update_current_locations()
         hands_coords = [
-            self.relative_coords_to_display(hand.current_location)
+            hand.current_location
             for hand in self.hands.get()
             if hand.current_location is not None
         ]
 
         for hand_coords in hands_coords:
-            if hand_coords < window_width / 2:
-                self.left_paddle.x += (
-                    hand_coords[0] - self.left_paddle.x
-                ) * Paddle.SPEED
-                self.left_paddle.y += (
-                    hand_coords[1] - self.left_paddle.y
-                ) * Paddle.SPEED
-
-            elif hand_coords > window_width / 2:
-                self.right_paddle.x += (
-                    hand_coords[0] - self.left_paddle.x
-                ) * Paddle.SPEED
-                self.right_paddle.y += (
-                    hand_coords[1] - self.left_paddle.y
-                ) * Paddle.SPEED
-    """
+            if hand_coords.x < 0.5:
+                self.left_paddle.y = 1.0 - hand_coords.y
+            else:
+                self.right_paddle.y = 1.0 - hand_coords.y
 
     def track_hands(self, delta_time_seconds):
         self.camera_image = self.system.camera.get_image()

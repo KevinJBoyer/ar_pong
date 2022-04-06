@@ -7,7 +7,7 @@ from system.system import System
 class Setup:
     name = "Setup"
 
-    SKIP_CALIBRATION = True
+    SKIP_CALIBRATION = False
 
     CAMERA_UPDATE_FREQ_SECONDS = 1.0 / 5
     MARKER_PADDING = 0.05
